@@ -1,0 +1,22 @@
+# Go
+/bin/
+/pkg/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build cache
+/dist/
+*.out
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Rod / browser temp (never commit)
+rod/
