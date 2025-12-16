@@ -27,6 +27,8 @@ func PerformLogin(
 	password string,
 ) error {
 
+	stealth.Think()
+
 	// Find username field
 	userEl := page.MustElement(cfg.UsernameSelector)
 	userEl.MustScrollIntoView()

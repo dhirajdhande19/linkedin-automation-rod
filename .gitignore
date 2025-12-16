@@ -20,3 +20,6 @@ Thumbs.db
 
 # Rod / browser temp (never commit)
 rod/
+
+#other
+session.json
