@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"linkedin-automation/internal/auth"
+	"linkedin-automation/internal/config"
 	"linkedin-automation/internal/session"
 	"linkedin-automation/internal/stealth"
 
@@ -13,9 +14,8 @@ import (
 	"github.com/go-rod/rod/lib/launcher"
 )
 
-// StartBrowser launches Chrome and tests the login engine on a mock page
 func StartBrowser() (*rod.Browser, *rod.Page) {
-	cookiePath := "session.json"
+	cfg := config.Load()
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -33,14 +33,12 @@ func StartBrowser() (*rod.Browser, *rod.Page) {
 	browser := rod.New().ControlURL(url).MustConnect()
 	page := browser.MustPage("https://example.com").MustWaitLoad()
 
-	// Load session cookies (NOTE: mock page resets DOM each run)
-	if session.CookiesExist(cookiePath) {
-		_ = session.LoadCookies(browser, cookiePath)
+	// Load cookies if present
+	if session.CookiesExist(cfg.CookiePath) {
+		_ = session.LoadCookies(browser, cfg.CookiePath)
 	}
 
-	// ------------------------------------------------
-	// Inject MOCK LOGIN HTML (POC only)
-	// ------------------------------------------------
+	// ---------------- MOCK LOGIN PAGE ----------------
 	page.MustEval(`
 () => {
 	document.body.innerHTML = 
@@ -56,7 +54,6 @@ func StartBrowser() (*rod.Browser, *rod.Page) {
 }
 `)
 
-	// Attach JS logic
 	page.MustEval(`
 () => {
 	document.getElementById("loginBtn").addEventListener("click", () => {
@@ -88,12 +85,11 @@ func StartBrowser() (*rod.Browser, *rod.Page) {
 			Timeout:          15 * time.Second,
 		}
 
-		if err := auth.PerformLogin(page, loginCfg, "demo", "demo123"); err != nil {
+		if err := auth.PerformLogin(page, loginCfg, cfg.Username, cfg.Password); err != nil {
 			panic(err)
 		}
 
-		// Save cookies after successful login (POC)
-		_ = session.SaveCookies(browser, cookiePath)
+		_ = session.SaveCookies(browser, cfg.CookiePath)
 	}
 
 	stealth.SleepRandom(3000, 5000)
